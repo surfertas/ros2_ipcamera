@@ -35,7 +35,6 @@ ament_target_dependencies(ipcamera_component
   "sensor_msgs"
   "std_msgs")
 
-
 rclcpp_components_register_nodes(ipcamera_component "ros2_ipcamera::IpCamera")
 set(node_plugins "${node_plugins}ros2_ipcamera::IpCamera;$<TARGET_FILE:ipcamera_component>\n")
 
@@ -52,7 +51,6 @@ target_link_libraries(composition
   ipcamera_component)
 ament_target_dependencies(composition
   "rclcpp")
-
 
 install(TARGETS
   ipcamera_component
