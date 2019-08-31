@@ -13,14 +13,14 @@ Installation:
 Usage:
 ----
 
-Update `rtsp_uri` parameter found in `/launch/ipcamera.launch.py` with the appropriate rtsp uri to your IP camera.
+Update ``rtsp_uri`` parameter found in ``/launch/ipcamera.launch.py`` with the appropriate rtsp uri to your IP camera.
 
 .. code:: bash
 
   ros2 launch ros2_ipcamera ipcamera.launch.py
 
 Topics:
-`/image_raw` - topic for raw image data
+``/image_raw`` - topic for raw image data
 
 References:
 ----
