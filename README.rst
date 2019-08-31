@@ -20,6 +20,7 @@ Update ``rtsp_uri`` parameter found in ``/launch/ipcamera.launch.py`` with the a
   ros2 launch ros2_ipcamera ipcamera.launch.py
 
 Topics:
+
 ``/image_raw`` - topic for raw image data
 
 References:
