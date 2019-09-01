@@ -14,7 +14,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV 3 REQUIRED)
@@ -32,8 +31,7 @@ ament_target_dependencies(ipcamera_component
   "rclcpp"
   "rclcpp_components"
   "cv_bridge"
-  "sensor_msgs"
-  "std_msgs")
+  "sensor_msgs")
 
 rclcpp_components_register_nodes(ipcamera_component "ros2_ipcamera::IpCamera")
 set(node_plugins "${node_plugins}ros2_ipcamera::IpCamera;$<TARGET_FILE:ipcamera_component>\n")
