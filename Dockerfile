@@ -16,14 +16,6 @@ RUN mkdir -p $IPCAMERA_WS/src
 WORKDIR $IPCAMERA_WS/src
 COPY ./ ros2_ipcamera/
 
-# install dependency package dependencies
-RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
-    apt-get update && \
-    rosdep install -q -y \
-      --from-paths \
-        src \
-      --ignore-src \
-    && rm -rf /var/lib/apt/lists/*
 
 # build dependency package source
 ARG CMAKE_BUILD_TYPE=Release
@@ -36,5 +28,4 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
 
 # source workspace from entrypoint
 RUN sed --in-place \
-      's|^source .*|source "$IPCAMERA_WS/install/setup.bash"|' \
-      /ros_entrypoint.sh
+      's|^source .*|source "$IPCAMERA_WS/install/setup.bash"|' 
