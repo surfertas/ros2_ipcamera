@@ -54,4 +54,5 @@ RUN . $ROS_WS/install/setup.sh && \
 
 # source workspace from entrypoint
 RUN sed --in-place \
-      's|^source .*|source "$IPCAMERA_WS/install/setup.bash"|'
+      's|^source .*|source "$IPCAMERA_WS/install/setup.bash"|' \
+       /ros_entrypoint.sh
