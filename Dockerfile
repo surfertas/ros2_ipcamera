@@ -20,7 +20,17 @@ COPY ./ ros2_ipcamera/
 ENV ROS_WS /opt/ros_ws
 RUN mkdir -p $ROS_WS/src
 WORKDIR $ROS_WS
+# https://github.com/dirk-thomas/vcstool
 RUN vcs import src < $IPCAMERA_WS/src/ros2_ipcamera/tools/ros2_dependencies.repos
+
+# install dependency package dependencies
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
+    apt-get update && \
+    rosdep install -q -y \
+      --from-paths \
+        src \
+      --ignore-src \
+    && rm -rf /var/lib/apt/lists/*
 
 # build dependency package source
 ARG CMAKE_BUILD_TYPE=Release
