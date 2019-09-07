@@ -52,6 +52,14 @@ RUN . $ROS_WS/install/setup.sh && \
       --ignore-src \
     && rm -rf /var/lib/apt/lists/*
 
+ARG COVERAGE_ENABLED=False
+RUN . $ROS_WS/install/setup.sh && \
+     colcon build \
+       --symlink-install \
+       --cmake-args \
+         -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
+         -DCOVERAGE_ENABLED=$COVERAGE_ENABLED
+
 # source workspace from entrypoint
 RUN sed --in-place \
       's|^source .*|source "$IPCAMERA_WS/install/setup.bash"|' \
