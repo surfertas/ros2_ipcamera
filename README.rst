@@ -5,13 +5,17 @@ ROS2 component that publishes raw images taken from an IP camera.
 
 Installation:
 ----
+
 .. code:: bash
+
   git clone https://github.com/surfertas/ros2_ipcamera.git
   colcon build --symlink-install
   . install/setup.bash
 
 Docker:
+
 .. code:: bash
+
   git clone https://github.com/surfertas/ros2_ipcamera.git
   sudo docker build -t ros2_ipcamera/latest .
 
@@ -25,6 +29,7 @@ Update ``rtsp_uri`` parameter found in ``/launch/ipcamera.launch.py`` with the a
   ros2 launch ros2_ipcamera ipcamera.launch.py
 
 Docker:
+
 .. code:: bash
 
   # Update rtsp_uri in launch file.
