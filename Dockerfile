@@ -64,3 +64,7 @@ RUN . $ROS_WS/install/setup.sh && \
 RUN sed --in-place \
       's|^source .*|source "$IPCAMERA_WS/install/setup.bash"|' \
        /ros_entrypoint.sh
+
+# install editor
+RUN ["apt-get", "update"]
+RUN ["apt-get", "install", "-y", "vim"]
