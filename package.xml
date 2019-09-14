@@ -4,9 +4,11 @@
   <name>ros2_ipcamera</name>
   <version>0.0.0</version>
   <description>ROS2 component for use with IP cameras</description>
+  <author>Tasuku Miura</author>
   <maintainer email="tasuku@gmail.com">tasuku</maintainer>
   <license>MIT</license>
 
+  <url type="repository">https://github.com/surfertas/ros2_ipcamera</url>
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>libopencv-dev</depend>
