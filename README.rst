@@ -49,3 +49,4 @@ References:
 3. https://github.com/klintan/ros2_usb_camera/blob/master/src/usb_camera_driver.cpp
 4. https://github.com/ros-perception/image_common/wiki/ROS2-Migration
 5. https://github.com/ros2/demos/tree/master/composition
+6. https://github.com/christianrauch/raspicam2_node/blob/master/src/RasPiCamPublisherNode.cpp
