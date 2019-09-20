@@ -18,12 +18,10 @@
 #include "ros2_ipcamera/ipcamera_component.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-//TODO: generate camera info yaml file. investigate if there is an easy way to generate.
-// Does compression require a info file?
+//TODO: Investigate why the camera info URL is not valid.
 
 namespace ros2_ipcamera
 {
-
 IpCamera::IpCamera(const rclcpp::NodeOptions & options)
 : Node("ipcamera", options),
   qos_(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data))
@@ -31,9 +29,9 @@ IpCamera::IpCamera(const rclcpp::NodeOptions & options)
   // Declare parameters.
   this->declare_parameter<std::string>("rtsp_uri", "");
   this->declare_parameter<std::string>("image_topic", "");
+  this->declare_parameter("camera_calibration_file", "");
   this->declare_parameter<int>("image_width", 0);
   this->declare_parameter<int>("image_height", 0);
-  this->declare_parameter("camera_calibration_file", "");
 
   execute();
 }
@@ -61,12 +59,11 @@ void IpCamera::execute()
 
   cinfo_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(this);
 
-  if (cinfo_manager_->validateURL(camera_calibration_file_param.c_str())) {
-      cinfo_manager_->loadCameraInfo(camera_calibration_file_param.c_str());
+  if (cinfo_manager_->validateURL(camera_calibration_file_param)) {
+    cinfo_manager_->loadCameraInfo(camera_calibration_file_param);
   } else {
     RCLCPP_WARN(node_logger, "CameraInfo URL not valid.");
     RCLCPP_WARN(node_logger, "URL IS %s", camera_calibration_file_param.c_str());
-    throw std::runtime_error("NO URL");
   }
 
   rclcpp::WallRate loop_rate(freq_);
@@ -149,7 +146,6 @@ void IpCamera::convert_frame_to_message(
   camera_info_msg.header.frame_id = std::to_string(frame_id);
   camera_info_msg.header.stamp = timestamp;
 }
-
 }
 #include "rclcpp_components/register_node_macro.hpp"
 

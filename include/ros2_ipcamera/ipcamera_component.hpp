@@ -18,6 +18,7 @@
 #include "opencv2/imgproc.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/camera_info.hpp"
 #include "ros2_ipcamera/visibility_control.h"
 #include <camera_info_manager/camera_info_manager.h>
 #include <image_transport/image_transport.h>
