@@ -9,13 +9,19 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     """Generate launch description with multiple components."""
+
+    # Get the config directory
+    config_dir = os.path.join(get_package_share_directory('ros2_ipcamera'), 'config')
+    config_file = os.path.join(config_dir, "camera_info.yaml")
+
     ipcamera_node = ComposableNode(
                     package='ros2_ipcamera',
                     node_plugin='ros2_ipcamera::IpCamera',
                     node_name='ipcamera',
                     parameters=[
-                        {"rtsp_uri": "rtsp://" },
+                        {"rtsp_uri": "rtsp://"},
                         {"image_topic": "image_raw"},
+                        {"camera_calibration_file": config_file},
                         {"image_width": 640},
                         {"image_height": 480}
                     ])

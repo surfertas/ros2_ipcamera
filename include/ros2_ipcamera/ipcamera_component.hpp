@@ -18,8 +18,12 @@
 #include "opencv2/imgproc.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/camera_info.hpp"
 #include "ros2_ipcamera/visibility_control.h"
+#include <camera_info_manager/camera_info_manager.h>
+#include <image_transport/image_transport.h>
 #include <chrono>
+
 
 using namespace std::chrono_literals;
 
@@ -35,9 +39,12 @@ public:
 
 private:
   std::string mat_type2encoding(int mat_type);
-  void convert_frame_to_message(const cv::Mat & frame, size_t frame_id, sensor_msgs::msg::Image & msg);
+  void convert_frame_to_message(const cv::Mat & frame, size_t frame_id, sensor_msgs::msg::Image & msg, sensor_msgs::msg::CameraInfo & camera_info_msg);
 
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_;
+  //rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_;
+  std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager_;
+  image_transport::CameraPublisher pub_;
+
   rclcpp::QoS qos_;
   std::chrono::milliseconds freq_ = 30ms;
 };

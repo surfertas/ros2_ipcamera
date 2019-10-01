@@ -18,9 +18,10 @@
 #include "ros2_ipcamera/ipcamera_component.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+//TODO: Investigate why the camera info URL is not valid.
+
 namespace ros2_ipcamera
 {
-
 IpCamera::IpCamera(const rclcpp::NodeOptions & options)
 : Node("ipcamera", options),
   qos_(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data))
@@ -28,6 +29,7 @@ IpCamera::IpCamera(const rclcpp::NodeOptions & options)
   // Declare parameters.
   this->declare_parameter<std::string>("rtsp_uri", "");
   this->declare_parameter<std::string>("image_topic", "");
+  this->declare_parameter("camera_calibration_file", "");
   this->declare_parameter<int>("image_width", 0);
   this->declare_parameter<int>("image_height", 0);
 
@@ -38,19 +40,31 @@ void IpCamera::execute()
 {
   std::string source;
   std::string topic;
+  std::string camera_calibration_file_param;
+
   int width;
   int height;
 
   // Get URI to pass as source to cap.
   this->get_parameter<std::string>("rtsp_uri", source);
   this->get_parameter<std::string>("image_topic", topic);
+  this->get_parameter<std::string>("camera_calibration_file", camera_calibration_file_param);
   this->get_parameter<int>("image_width", width);
   this->get_parameter<int>("image_height", height);
 
   rclcpp::Logger node_logger = this->get_logger();
 
   RCLCPP_INFO(node_logger, "Publishing data on topic '%s'", topic.c_str());
-  pub_ = create_publisher<sensor_msgs::msg::Image>(topic, qos_);
+  pub_ = image_transport::create_camera_publisher(this, topic, rmw_qos_profile_sensor_data);
+
+  cinfo_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(this);
+
+  if (cinfo_manager_->validateURL(camera_calibration_file_param)) {
+    cinfo_manager_->loadCameraInfo(camera_calibration_file_param);
+  } else {
+    RCLCPP_WARN(node_logger, "CameraInfo URL not valid.");
+    RCLCPP_WARN(node_logger, "URL IS %s", camera_calibration_file_param.c_str());
+  }
 
   rclcpp::WallRate loop_rate(freq_);
 
@@ -76,6 +90,8 @@ void IpCamera::execute()
     auto msg = std::make_unique<sensor_msgs::msg::Image>();
     msg->is_bigendian = false;
 
+    auto camera_info_msg = std::make_shared<sensor_msgs::msg::CameraInfo>(cinfo_manager_->getCameraInfo());
+
     // Get the frame from the video capture.
     cap >> frame;
 
@@ -84,9 +100,10 @@ void IpCamera::execute()
 
       cv::resize(frame, frame, cv::Size(width, height), 0, 0, CV_INTER_AREA);
       // Convert to a ROS image
-      convert_frame_to_message(frame, frame_id, *msg);
+      convert_frame_to_message(frame, frame_id, *msg, *camera_info_msg);
+
       // Publish the image message and increment the frame_id.
-      pub_->publish(std::move(msg));
+      pub_.publish(std::move(msg), camera_info_msg);
       ++frame_id;
     }
     loop_rate.sleep();
@@ -110,7 +127,7 @@ std::string IpCamera::mat_type2encoding(int mat_type)
 }
 
 void IpCamera::convert_frame_to_message(
-  const cv::Mat & frame, size_t frame_id, sensor_msgs::msg::Image & msg)
+  const cv::Mat & frame, size_t frame_id, sensor_msgs::msg::Image & msg, sensor_msgs::msg::CameraInfo & camera_info_msg)
 {
   // copy cv information into ros message
   msg.height = frame.rows;
@@ -120,9 +137,15 @@ void IpCamera::convert_frame_to_message(
   size_t size = frame.step * frame.rows;
   msg.data.resize(size);
   memcpy(&msg.data[0], frame.data, size);
-  msg.header.frame_id = std::to_string(frame_id);
-}
 
+  rclcpp::Time timestamp = this->get_clock()->now();
+
+  msg.header.frame_id = std::to_string(frame_id);
+  msg.header.stamp = timestamp;
+
+  camera_info_msg.header.frame_id = std::to_string(frame_id);
+  camera_info_msg.header.stamp = timestamp;
+}
 }
 #include "rclcpp_components/register_node_macro.hpp"
 

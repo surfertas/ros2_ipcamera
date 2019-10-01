@@ -16,6 +16,9 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(camera_info_manager REQUIRED)
+find_package(camera_calibration_parsers REQUIRED)
+find_package(image_transport REQUIRED)
 find_package(OpenCV 3 REQUIRED)
 
 include_directories(include)
@@ -31,7 +34,10 @@ ament_target_dependencies(ipcamera_component
   "rclcpp"
   "rclcpp_components"
   "cv_bridge"
-  "sensor_msgs")
+  "sensor_msgs"
+  "camera_info_manager"
+  "camera_calibration_parsers"
+  "image_transport")
 
 rclcpp_components_register_nodes(ipcamera_component "ros2_ipcamera::IpCamera")
 set(node_plugins "${node_plugins}ros2_ipcamera::IpCamera;$<TARGET_FILE:ipcamera_component>\n")
@@ -74,6 +80,11 @@ endif()
 # Install launch files.
 install(DIRECTORY
   launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  config
   DESTINATION share/${PROJECT_NAME}
 )
 
