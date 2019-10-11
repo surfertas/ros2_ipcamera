@@ -23,7 +23,9 @@ Docker:
 Usage:
 ----
 
-Update ``rtsp_uri`` parameter found in ``/launch/ipcamera.launch.py`` with the appropriate rtsp uri to your IP camera.
+1. Update ``rtsp_uri`` parameter found in ``/launch/ipcamera.launch.py`` with the appropriate rtsp uri to your IP camera.
+2. Generate a camera_info.yaml file and place in `/config`.
+
 
 .. code:: bash
 
