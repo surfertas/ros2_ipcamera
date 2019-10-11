@@ -57,6 +57,9 @@ void IpCamera::execute()
   RCLCPP_INFO(node_logger, "Publishing data on topic '%s'", topic.c_str());
   pub_ = image_transport::create_camera_publisher(this, topic, rmw_qos_profile_sensor_data);
 
+
+  // https://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#_details
+  // Make sure that cname is equal to camera_name in camera_info.yaml file. Default is set to "camera".
   cinfo_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(this);
 
   if (cinfo_manager_->validateURL(camera_calibration_file_param)) {
