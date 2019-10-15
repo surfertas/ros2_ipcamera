@@ -18,8 +18,6 @@
 #include "ros2_ipcamera/ipcamera_component.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-//TODO: Investigate why the camera info URL is not valid.
-
 namespace ros2_ipcamera
 {
 IpCamera::IpCamera(const rclcpp::NodeOptions & options)
