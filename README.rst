@@ -3,9 +3,9 @@ ROS2 IP Camera Component
 
 ROS2 component that publishes raw images taken from an IP camera.
 
-Note: to cross compile for raspi see the related article, `ROS2: Cross compile package for Raspiberry Pi 3 B+`_
+Note: to cross-compile for ARM architecture see the related article_.
 
-.. _ROS2: Cross compile package for Raspiberry Pi 3 B+: http://surfertas.github.io/ros2/cross-compile/2019/10/14/crosscompile.html
+.. _article: http://surfertas.github.io/ros2/cross-compile/2019/10/14/crosscompile.html
 
 Installation:
 ----
