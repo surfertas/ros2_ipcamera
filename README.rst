@@ -23,7 +23,7 @@ Docker:
   git clone https://github.com/surfertas/ros2_ipcamera.git
   cd ros2_ipcamera
   sudo docker build -t ros2_ipcamera/latest .
-
+  docker run -it ros2_ipcamera/latest /bin/bash
 Usage:
 ----
 
