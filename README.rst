@@ -1,6 +1,12 @@
 ROS2 IP Camera Component
 ====
 
+.. raw:: html
+
+    <a href='https://www.korabo.io/checkout-page/5e2c4727d31a7a00290de877/5e23f0b31b70f70022ff5933'>
+        <img src='https://img.shields.io/badge/Korabo-donate-blue' alt='donate'>
+    </a>
+
 ROS2 component that publishes raw images taken from an IP camera.
 
 Note: to cross-compile for ARM architecture see the related article_.
