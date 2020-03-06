@@ -21,11 +21,8 @@ def generate_launch_description():
                     node_plugin='ros2_ipcamera::IpCamera',
                     node_name='ipcamera',
                     parameters=[
-                        {"rtsp_uri": "rtsp://"},
-                        {"image_topic": "image_raw"},
-                        {"camera_calibration_file": config_file},
-                        {"image_width": 640},
-                        {"image_height": 480}
+                        os.path.join(config_dir"/ipcamera.yaml"),
+                        {"camera_calibration_file": config_file}
                     ])
 
     container = ComposableNodeContainer(
