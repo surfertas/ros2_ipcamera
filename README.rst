@@ -33,7 +33,7 @@ Docker:
 Usage:
 ----
 
-1. Update ``rtsp_uri`` parameter found in ``/launch/ipcamera.launch.py`` with the appropriate rtsp uri to your IP camera.
+1. Update ``rtsp_uri`` parameter found in ``/config/ipcamera.yaml`` with the appropriate rtsp uri to your IP camera.
 2. Generate a camera_info.yaml file and place in ``/config``.
 
 
@@ -45,9 +45,9 @@ Docker:
 
 .. code:: bash
 
-  # Update rtsp_uri in launch file.
+  # Update rtsp_uri in the yaml file.
   sudo docker run -it ros2_ipcamera/latest bash
-  vi src/ros2_ipcamera/launch/ipcamera.launch.py
+  vi src/ros2_ipcamera/config/ipcamera.yaml
   source ./install/setup.bash
   ros2 launch ros2_ipcamera ipcamera.launch.py
 
