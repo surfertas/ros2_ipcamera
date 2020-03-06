@@ -48,7 +48,8 @@ Docker:
   # Update rtsp_uri in launch file.
   sudo docker run -it ros2_ipcamera/latest bash
   vi src/ros2_ipcamera/launch/ipcamera.launch.py
-  ros2 launch ipcamera.launch.py
+  source ./install/setup.bash
+  ros2 launch ros2_ipcamera ipcamera.launch.py
 
 Topics:
 
