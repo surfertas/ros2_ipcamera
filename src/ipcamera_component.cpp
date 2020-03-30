@@ -20,6 +20,8 @@
 
 namespace ros2_ipcamera
 {
+
+
 IpCamera::IpCamera(const rclcpp::NodeOptions & options)
 : Node("ipcamera", options),
   qos_(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data))
@@ -34,12 +36,13 @@ IpCamera::IpCamera(const rclcpp::NodeOptions & options)
   execute();
 }
 
-void IpCamera::execute()
+
+void
+IpCamera::execute()
 {
   std::string source;
   std::string topic;
   std::string camera_calibration_file_param;
-
   int width;
   int height;
 
@@ -51,10 +54,8 @@ void IpCamera::execute()
   this->get_parameter<int>("image_height", height);
 
   rclcpp::Logger node_logger = this->get_logger();
-
   RCLCPP_INFO(node_logger, "Publishing data on topic '%s'", topic.c_str());
   pub_ = image_transport::create_camera_publisher(this, topic, rmw_qos_profile_sensor_data);
-
 
   // https://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#_details
   // Make sure that cname is equal to camera_name in camera_info.yaml file. Default is set to "camera".
@@ -72,7 +73,6 @@ void IpCamera::execute()
   // Initialize OpenCV video capture stream.
   cv::VideoCapture cap;
   cap.open(source);
-
   // Set the width and height based on command line arguments.
   cap.set(cv::CAP_PROP_FRAME_WIDTH, static_cast<double>(width));
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, static_cast<double>(height));
@@ -80,7 +80,6 @@ void IpCamera::execute()
     RCLCPP_ERROR(node_logger, "Could not open video stream");
     throw std::runtime_error("Could not open video stream");
   }
-
   // Initialize OpenCV image matrices.
   cv::Mat frame;
 
@@ -92,17 +91,13 @@ void IpCamera::execute()
     msg->is_bigendian = false;
 
     auto camera_info_msg = std::make_shared<sensor_msgs::msg::CameraInfo>(cinfo_manager_->getCameraInfo());
-
     // Get the frame from the video capture.
     cap >> frame;
-
     // Check if the frame was grabbed correctly
     if (!frame.empty()) {
-
       cv::resize(frame, frame, cv::Size(width, height), 0, 0, CV_INTER_AREA);
       // Convert to a ROS image
       convert_frame_to_message(frame, frame_id, *msg, *camera_info_msg);
-
       // Publish the image message and increment the frame_id.
       pub_.publish(std::move(msg), camera_info_msg);
       ++frame_id;
@@ -111,7 +106,9 @@ void IpCamera::execute()
   }
 }
 
-std::string IpCamera::mat_type2encoding(int mat_type)
+
+std::string
+IpCamera::mat_type2encoding(int mat_type)
 {
   switch (mat_type) {
     case CV_8UC1:
@@ -127,8 +124,13 @@ std::string IpCamera::mat_type2encoding(int mat_type)
   }
 }
 
-void IpCamera::convert_frame_to_message(
-  const cv::Mat & frame, size_t frame_id, sensor_msgs::msg::Image & msg, sensor_msgs::msg::CameraInfo & camera_info_msg)
+
+void
+IpCamera::convert_frame_to_message(
+  const cv::Mat & frame,
+  size_t frame_id,
+  sensor_msgs::msg::Image & msg,
+  sensor_msgs::msg::CameraInfo & camera_info_msg)
 {
   // copy cv information into ros message
   msg.height = frame.rows;
@@ -143,11 +145,10 @@ void IpCamera::convert_frame_to_message(
 
   msg.header.frame_id = std::to_string(frame_id);
   msg.header.stamp = timestamp;
-
   camera_info_msg.header.frame_id = std::to_string(frame_id);
   camera_info_msg.header.stamp = timestamp;
 }
 }
-#include "rclcpp_components/register_node_macro.hpp"
 
+#include "rclcpp_components/register_node_macro.hpp"
 RCLCPP_COMPONENTS_REGISTER_NODE(ros2_ipcamera::IpCamera)

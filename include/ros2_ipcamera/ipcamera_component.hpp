@@ -35,16 +35,23 @@ public:
   COMPOSITION_PUBLIC
   explicit IpCamera(const rclcpp::NodeOptions & options);
 
-  void execute();
+  void
+  execute();
 
 private:
-  std::string mat_type2encoding(int mat_type);
-  void convert_frame_to_message(const cv::Mat & frame, size_t frame_id, sensor_msgs::msg::Image & msg, sensor_msgs::msg::CameraInfo & camera_info_msg);
 
-  //rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr pub_;
+  std::string
+  mat_type2encoding(int mat_type);
+
+  void
+  convert_frame_to_message(
+    const cv::Mat & frame,
+    size_t frame_id,
+    sensor_msgs::msg::Image & msg,
+    sensor_msgs::msg::CameraInfo & camera_info_msg);
+
   std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager_;
   image_transport::CameraPublisher pub_;
-
   rclcpp::QoS qos_;
   std::chrono::milliseconds freq_ = 30ms;
 };
