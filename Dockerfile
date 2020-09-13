@@ -41,7 +41,7 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
       --cmake-args \
         -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE
 
-# install navigation2 package dependencies
+# install package dependencies
 WORKDIR $IPCAMERA_WS
 RUN . $ROS_WS/install/setup.sh && \
     apt-get update && \
