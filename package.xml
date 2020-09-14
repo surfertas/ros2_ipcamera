@@ -14,6 +14,7 @@
   <depend>libopencv-dev</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
+  <depend>rclcpp_lifecycle</depend>
   <depend>rcutils</depend>
   <depend>rmw</depend>
   <depend>rmw_implementation_cmake</depend>
@@ -22,7 +23,7 @@
   <depend>image_transport</depend>
   <depend>launch_ros</depend>
   <depend>camera_calibration_parsers</depend>
-  
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
