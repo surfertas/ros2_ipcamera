@@ -16,12 +16,13 @@
 
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/logger.hpp>
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
-#include "ros2_ipcamera/visibility_control.h"
-#include <camera_info_manager/camera_info_manager.h>
-#include <image_transport/image_transport.h>
+#include "ros2_ipcamera/visibility_control.hpp"
+#include <camera_info_manager/camera_info_manager.hpp>
+#include <image_transport/image_transport.hpp>
 #include <chrono>
 
 
@@ -29,33 +30,49 @@ using namespace std::chrono_literals;
 
 namespace ros2_ipcamera
 {
-class IpCamera : public rclcpp::Node
-{
-public:
-  COMPOSITION_PUBLIC
-  explicit IpCamera(const rclcpp::NodeOptions & options);
+  class COMPOSITION_PUBLIC IpCamera : public rclcpp::Node
+  {
+  public:
+    /**
+     * Instantiates the IpCamera Node.
+     */
+    explicit IpCamera(const std::string& node_name, const rclcpp::NodeOptions & options);
 
-  void
-  execute();
+    /**
+     * Delegates construction.
+     */
+    explicit IpCamera(const rclcpp::NodeOptions & options);
 
-private:
+    /**;
+     * Declares the parameter using rcl_interfaces.
+     */
+    void
+    initialize_parameters();
 
-  std::string
-  mat_type2encoding(int mat_type);
+    /**;
+     * Captures frame and converts frame to message.
+     */
+    void
+    execute();
 
-  void
-  convert_frame_to_message(
-    const cv::Mat & frame,
-    size_t frame_id,
-    sensor_msgs::msg::Image & msg,
-    sensor_msgs::msg::CameraInfo & camera_info_msg);
+  private:
+    std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager_;
+    image_transport::CameraPublisher pub_;
+    rclcpp::QoS qos_;
+    std::chrono::milliseconds freq_ = 30ms;
 
-  std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager_;
-  image_transport::CameraPublisher pub_;
-  rclcpp::QoS qos_;
-  std::chrono::milliseconds freq_ = 30ms;
-};
+    cv::VideoCapture cap_;
 
+    std::string
+    mat_type2encoding(int mat_type);
+
+    void
+    convert_frame_to_message(
+      const cv::Mat & frame,
+      size_t frame_id,
+      sensor_msgs::msg::Image & msg,
+      sensor_msgs::msg::CameraInfo & camera_info_msg);
+  };
 }  // namespace ros2_ipcamera
 
 #endif // IPCAMERA_COMPONENT_H

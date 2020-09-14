@@ -13,8 +13,9 @@
 // limitations under the License.
 #include <memory>
 
+#include <rclcpp/rclcpp.hpp>
 #include "ros2_ipcamera/ipcamera_component.hpp"
-#include "rclcpp/rclcpp.hpp"
+
 
 int main(int argc, char * argv[])
 {
@@ -23,7 +24,7 @@ int main(int argc, char * argv[])
   rclcpp::executors::SingleThreadedExecutor exec;
   rclcpp::NodeOptions options;
 
-  auto ipcamera_node = std::make_shared<ros2_ipcamera::IpCamera>(options);
+  auto ipcamera_node = std::make_shared<ros2_ipcamera::IpCamera>("ipcamera", options);
 
   exec.add_node(ipcamera_node);
 
