@@ -44,6 +44,14 @@ namespace ros2_ipcamera
     explicit IpCamera(const rclcpp::NodeOptions & options);
 
     /**;
+     * Configures component.
+     *
+     * Declares parameters and configures video capture.
+     */
+    void
+    configure();
+
+    /**;
      * Declares the parameter using rcl_interfaces.
      */
     void
@@ -57,11 +65,16 @@ namespace ros2_ipcamera
 
   private:
     std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager_;
+    std::string camera_calibration_file_param_;
+
     image_transport::CameraPublisher pub_;
     rclcpp::QoS qos_;
     std::chrono::milliseconds freq_ = 30ms;
 
     cv::VideoCapture cap_;
+    std::string source_;
+    int width_;
+    int height_;
 
     std::string
     mat_type2encoding(int mat_type);

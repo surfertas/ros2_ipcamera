@@ -33,11 +33,55 @@ namespace ros2_ipcamera
     // Declare parameters.
     this->initialize_parameters();
 
+    this->configure();
+
+    //TODO(Tasuku): add call back to handle parameter events.
     // Set up publishers.
     this->pub_ = image_transport::create_camera_publisher(
       this, "~/image_raw", rmw_qos_profile_sensor_data);
 
     this->execute();
+  }
+
+  void
+  IpCamera::configure()
+  {
+    rclcpp::Logger node_logger = this->get_logger();
+
+    // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
+    this->get_parameter<std::string>("rtsp_uri", source_);
+    RCLCPP_INFO(node_logger, "rtsp_uri: %s", source_.c_str());
+
+    this->get_parameter<std::string>("camera_calibration_file", camera_calibration_file_param_);
+    RCLCPP_INFO(node_logger, "camera_calibration_file: %s",
+                camera_calibration_file_param_.c_str());
+
+    this->get_parameter<int>("image_width", width_);
+    RCLCPP_INFO(node_logger, "image_width: %d", width_);
+
+    this->get_parameter<int>("image_height", height_);
+    RCLCPP_INFO(node_logger, "image_height: %d", height_);
+
+    // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
+    this->cap_.open(source_);
+    // Set the width and height based on command line arguments.
+    this->cap_.set(cv::CAP_PROP_FRAME_WIDTH, static_cast<double>(width_));
+    this->cap_.set(cv::CAP_PROP_FRAME_HEIGHT, static_cast<double>(height_));
+    if (!this->cap_.isOpened()) {
+      RCLCPP_ERROR(node_logger, "Could not open video stream");
+      throw std::runtime_error("Could not open video stream");
+    }
+
+    // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
+    // https://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#_details
+    // Make sure that cname is equal to camera_name in camera_info.yaml file. Default cname is set to "camera".
+    cinfo_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(this);
+    if (cinfo_manager_->validateURL(camera_calibration_file_param_)) {
+      cinfo_manager_->loadCameraInfo(camera_calibration_file_param_);
+    } else {
+      RCLCPP_WARN(node_logger, "CameraInfo URL not valid.");
+      RCLCPP_WARN(node_logger, "URL IS %s", camera_calibration_file_param_.c_str());
+    }
   }
 
   void
@@ -74,39 +118,8 @@ namespace ros2_ipcamera
   IpCamera::execute()
   {
     rclcpp::Logger node_logger = this->get_logger();
-
-    std::string source;
-    std::string camera_calibration_file_param;
-    int width;
-    int height;
-
-    // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
-    this->get_parameter<std::string>("rtsp_uri", source);
-    this->get_parameter<std::string>("camera_calibration_file", camera_calibration_file_param);
-    this->get_parameter<int>("image_width", width);
-    this->get_parameter<int>("image_height", height);
-    // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
-    // https://docs.ros.org/api/camera_info_manager/html/classcamera__info__manager_1_1CameraInfoManager.html#_details
-    // Make sure that cname is equal to camera_name in camera_info.yaml file. Default cname is set to "camera".
-    cinfo_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(this);
-    if (cinfo_manager_->validateURL(camera_calibration_file_param)) {
-      cinfo_manager_->loadCameraInfo(camera_calibration_file_param);
-    } else {
-      RCLCPP_WARN(node_logger, "CameraInfo URL not valid.");
-      RCLCPP_WARN(node_logger, "URL IS %s", camera_calibration_file_param.c_str());
-    }
-
     rclcpp::WallRate loop_rate(freq_);
 
-    // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
-    this->cap_.open(source);
-    // Set the width and height based on command line arguments.
-    this->cap_.set(cv::CAP_PROP_FRAME_WIDTH, static_cast<double>(width));
-    this->cap_.set(cv::CAP_PROP_FRAME_HEIGHT, static_cast<double>(height));
-    if (!this->cap_.isOpened()) {
-      RCLCPP_ERROR(node_logger, "Could not open video stream");
-      throw std::runtime_error("Could not open video stream");
-    }
     // Initialize OpenCV image matrices.
     cv::Mat frame;
 
@@ -122,7 +135,7 @@ namespace ros2_ipcamera
       this->cap_ >> frame;
       // Check if the frame was grabbed correctly
       if (!frame.empty()) {
-        cv::resize(frame, frame, cv::Size(width, height), 0, 0, cv::INTER_AREA);
+        cv::resize(frame, frame, cv::Size(width_, height_), 0, 0, cv::INTER_AREA);
         // Convert to a ROS image
         convert_frame_to_message(frame, frame_id, *msg, *camera_info_msg);
         // Publish the image message and increment the frame_id.
