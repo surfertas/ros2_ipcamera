@@ -33,6 +33,9 @@ Usage:
 
 .. code:: bash
 
+  ros2 run ros2_ipcamera composition
+
+  # using launch file
   ros2 launch ros2_ipcamera ipcamera.launch.py
 
 Docker:
@@ -47,7 +50,8 @@ Docker:
 
 Topics:
 
-``/image_raw`` - topic for raw image data
+``/ipcamera/image_raw`` - topic for raw image data
+``/ipcamera/camera_info`` - topic for camera info
 
 References:
 ----

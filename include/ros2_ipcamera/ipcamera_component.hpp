@@ -30,17 +30,19 @@ using namespace std::chrono_literals;
 
 namespace ros2_ipcamera
 {
-  class COMPOSITION_PUBLIC IpCamera : public rclcpp::Node
+  class IpCamera : public rclcpp::Node
   {
   public:
     /**
      * Instantiates the IpCamera Node.
      */
+    COMPOSITION_PUBLIC
     explicit IpCamera(const std::string& node_name, const rclcpp::NodeOptions & options);
 
     /**
      * Delegates construction.
      */
+    COMPOSITION_PUBLIC
     explicit IpCamera(const rclcpp::NodeOptions & options);
 
     /**;
@@ -48,18 +50,21 @@ namespace ros2_ipcamera
      *
      * Declares parameters and configures video capture.
      */
+    COMPOSITION_PUBLIC
     void
     configure();
 
     /**;
      * Declares the parameter using rcl_interfaces.
      */
+    COMPOSITION_PUBLIC
     void
     initialize_parameters();
 
     /**;
      * Captures frame and converts frame to message.
      */
+    COMPOSITION_PUBLIC
     void
     execute();
 

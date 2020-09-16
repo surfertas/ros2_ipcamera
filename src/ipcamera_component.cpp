@@ -18,18 +18,19 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/parameter.hpp>
 #include "ros2_ipcamera/ipcamera_component.hpp"
+#include "ros2_ipcamera/custom_qos.hpp"
 
 namespace ros2_ipcamera
 {
-  IpCamera::IpCamera(const rclcpp::NodeOptions & options)
-  : Node("ipcamera", options),
-    qos_(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data))
-  {}
-
   IpCamera::IpCamera(const std::string & node_name, const rclcpp::NodeOptions & options)
   : Node(node_name, options),
-    qos_(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data))
+    qos_(CustomSensorDataQoS())
   {
+    RCLCPP_INFO(this->get_logger(), "namespace: %s", this->get_namespace());
+    RCLCPP_INFO(this->get_logger(), "node name: %s", this->get_name());
+    RCLCPP_INFO(this->get_logger(),
+                "middleware: %s", rmw_get_implementation_identifier());
+                
     // Declare parameters.
     this->initialize_parameters();
 
@@ -38,10 +39,14 @@ namespace ros2_ipcamera
     //TODO(Tasuku): add call back to handle parameter events.
     // Set up publishers.
     this->pub_ = image_transport::create_camera_publisher(
-      this, "~/image_raw", rmw_qos_profile_sensor_data);
+      this, "~/image_raw", qos_.get_rmw_qos_profile());
 
     this->execute();
   }
+
+  IpCamera::IpCamera(const rclcpp::NodeOptions & options)
+  : IpCamera::IpCamera("ipcamera", options)
+  {}
 
   void
   IpCamera::configure()

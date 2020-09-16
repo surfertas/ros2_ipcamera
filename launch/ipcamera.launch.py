@@ -21,18 +21,18 @@ def generate_launch_description():
 
     ipcamera_node = ComposableNode(
                     package='ros2_ipcamera',
-                    node_plugin='ros2_ipcamera::IpCamera',
-                    node_name='ipcamera',
+                    plugin='ros2_ipcamera::IpCamera',
+                    name='ipcamera',
                     parameters=[
                         params,
                         {"camera_calibration_file": config_file}
                     ])
 
     container = ComposableNodeContainer(
-            node_name='container',
-            node_namespace='',
+            name='container',
+            namespace='ipcamera_container',
             package='rclcpp_components',
-            node_executable='component_container',
+            executable='component_container',
             composable_node_descriptions=[ipcamera_node],
             output='screen',
     )
