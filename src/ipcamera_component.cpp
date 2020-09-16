@@ -18,19 +18,19 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/parameter.hpp>
 #include "ros2_ipcamera/ipcamera_component.hpp"
-#include "ros2_ipcamera/custom_qos.hpp"
+
 
 namespace ros2_ipcamera
 {
   IpCamera::IpCamera(const std::string & node_name, const rclcpp::NodeOptions & options)
   : Node(node_name, options),
-    qos_(CustomSensorDataQoS())
+    qos_(rclcpp::QoS(rclcpp::KeepLast(1)).best_effort())
   {
     RCLCPP_INFO(this->get_logger(), "namespace: %s", this->get_namespace());
     RCLCPP_INFO(this->get_logger(), "node name: %s", this->get_name());
     RCLCPP_INFO(this->get_logger(),
                 "middleware: %s", rmw_get_implementation_identifier());
-                
+
     // Declare parameters.
     this->initialize_parameters();
 
