@@ -51,6 +51,7 @@ Docker:
 Topics:
 
 ``/ipcamera/image_raw`` - topic for raw image data
+
 ``/ipcamera/camera_info`` - topic for camera info
 
 References:
