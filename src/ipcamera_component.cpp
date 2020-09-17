@@ -27,7 +27,7 @@ namespace ros2_ipcamera
     qos_(rclcpp::QoS(rclcpp::KeepLast(1)).best_effort())
   {
     RCLCPP_INFO(this->get_logger(), "namespace: %s", this->get_namespace());
-    RCLCPP_INFO(this->get_logger(), "node name: %s", this->get_name());
+    RCLCPP_INFO(this->get_logger(), "name: %s", this->get_name());
     RCLCPP_INFO(this->get_logger(),
                 "middleware: %s", rmw_get_implementation_identifier());
 
@@ -69,7 +69,9 @@ namespace ros2_ipcamera
 
     // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
     this->cap_.open(source_);
+
     // Set the width and height based on command line arguments.
+    // The width, height has to match the available resolutions of the IP camera.
     this->cap_.set(cv::CAP_PROP_FRAME_WIDTH, static_cast<double>(width_));
     this->cap_.set(cv::CAP_PROP_FRAME_HEIGHT, static_cast<double>(height_));
     if (!this->cap_.isOpened()) {
@@ -122,8 +124,9 @@ namespace ros2_ipcamera
   void
   IpCamera::execute()
   {
-    rclcpp::Logger node_logger = this->get_logger();
-    rclcpp::WallRate loop_rate(freq_);
+    rclcpp::Rate loop_rate(freq_);
+
+    auto camera_info_msg = std::make_shared<sensor_msgs::msg::CameraInfo>(cinfo_manager_->getCameraInfo());
 
     // Initialize OpenCV image matrices.
     cv::Mat frame;
@@ -135,12 +138,10 @@ namespace ros2_ipcamera
       auto msg = std::make_unique<sensor_msgs::msg::Image>();
       msg->is_bigendian = false;
 
-      auto camera_info_msg = std::make_shared<sensor_msgs::msg::CameraInfo>(cinfo_manager_->getCameraInfo());
       // Get the frame from the video capture.
       this->cap_ >> frame;
       // Check if the frame was grabbed correctly
       if (!frame.empty()) {
-        cv::resize(frame, frame, cv::Size(width_, height_), 0, 0, cv::INTER_AREA);
         // Convert to a ROS image
         convert_frame_to_message(frame, frame_id, *msg, *camera_info_msg);
         // Publish the image message and increment the frame_id.

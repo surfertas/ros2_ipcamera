@@ -28,14 +28,14 @@ Usage:
 ----
 
 1. Update ``rtsp_uri`` parameter found in ``/config/ipcamera.yaml`` with the appropriate rtsp uri to your IP camera.
-2. Generate a camera_info.yaml file and place in ``/config``.
-
+2. Set the width and height to match the resolution of the IP camera. The node does not resize the image, but only sets the capture.
+3. Generate a camera_info.yaml file and place in ``/config``.
 
 .. code:: bash
 
   ros2 run ros2_ipcamera composition
 
-  # using launch file
+  # Alternatively use the launch file
   ros2 launch ros2_ipcamera ipcamera.launch.py
 
 Docker:
