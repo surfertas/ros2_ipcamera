@@ -80,6 +80,7 @@ namespace ros2_ipcamera
     std::string source_;
     int width_;
     int height_;
+    std::string frame_id_;
 
     std::string
     mat_type2encoding(int mat_type);
@@ -87,7 +88,7 @@ namespace ros2_ipcamera
     void
     convert_frame_to_message(
       const cv::Mat & frame,
-      size_t frame_id,
+      std::string frame_id,
       sensor_msgs::msg::Image & msg,
       sensor_msgs::msg::CameraInfo & camera_info_msg);
   };
