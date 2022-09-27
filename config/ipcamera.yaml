@@ -4,3 +4,4 @@ ipcamera:
     image_topic: "image_raw"
     image_width: 640
     image_height: 480
+    frame_id: "camera"

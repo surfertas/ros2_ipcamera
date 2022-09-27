@@ -67,6 +67,9 @@ namespace ros2_ipcamera
     this->get_parameter<int>("image_height", height_);
     RCLCPP_INFO(node_logger, "image_height: %d", height_);
 
+    this->get_parameter<std::string>("frame_id", frame_id_);
+    RCLCPP_INFO_STREAM(node_logger, "frame_id: "<< frame_id_);
+
     // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
     this->cap_.open(source_);
 
@@ -119,6 +122,12 @@ namespace ros2_ipcamera
     image_height_descriptor.type =
       rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
     this->declare_parameter("image_height", 480, image_height_descriptor);
+
+    rcl_interfaces::msg::ParameterDescriptor frame_id_descriptor;
+    frame_id_descriptor.name = "frame_id";
+    frame_id_descriptor.type =
+      rcl_interfaces::msg::ParameterType::PARAMETER_STRING;
+    this->declare_parameter("frame_id", "ip_camera", frame_id_descriptor);
   }
 
   void
@@ -131,7 +140,6 @@ namespace ros2_ipcamera
     // Initialize OpenCV image matrices.
     cv::Mat frame;
 
-    size_t frame_id = 0;
     // Our main event loop will spin until the user presses CTRL-C to exit.
     while (rclcpp::ok()) {
       // Initialize a shared pointer to an Image message.
@@ -143,10 +151,9 @@ namespace ros2_ipcamera
       // Check if the frame was grabbed correctly
       if (!frame.empty()) {
         // Convert to a ROS image
-        convert_frame_to_message(frame, frame_id, *msg, *camera_info_msg);
+        convert_frame_to_message(frame, frame_id_, *msg, *camera_info_msg);
         // Publish the image message and increment the frame_id.
         this->pub_.publish(std::move(msg), camera_info_msg);
-        ++frame_id;
       }
       loop_rate.sleep();
     }
@@ -172,7 +179,7 @@ namespace ros2_ipcamera
   void
   IpCamera::convert_frame_to_message(
     const cv::Mat & frame,
-    size_t frame_id,
+    std::string frame_id,
     sensor_msgs::msg::Image & msg,
     sensor_msgs::msg::CameraInfo & camera_info_msg)
   {
@@ -187,9 +194,9 @@ namespace ros2_ipcamera
 
     rclcpp::Time timestamp = this->get_clock()->now();
 
-    msg.header.frame_id = std::to_string(frame_id);
+    msg.header.frame_id = frame_id;
     msg.header.stamp = timestamp;
-    camera_info_msg.header.frame_id = std::to_string(frame_id);
+    camera_info_msg.header.frame_id = frame_id;
     camera_info_msg.header.stamp = timestamp;
   }
 }
