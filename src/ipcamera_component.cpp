@@ -68,7 +68,7 @@ namespace ros2_ipcamera
     RCLCPP_INFO(node_logger, "image_height: %d", height_);
 
     this->get_parameter<std::string>("frame_id", frame_id_);
-    RCLCPP_INFO(node_logger, "frame_id: %s", frame_id_);
+    RCLCPP_INFO(node_logger, "frame_id: %s", frame_id_.c_str());
 
     // TODO(Tasuku): move to on_configure() when rclcpp_lifecycle available.
     this->cap_.open(source_);
