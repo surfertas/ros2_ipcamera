@@ -127,7 +127,7 @@ namespace ros2_ipcamera
     frame_id_descriptor.name = "frame_id";
     frame_id_descriptor.type =
       rcl_interfaces::msg::ParameterType::PARAMETER_STRING;
-    this->declare_parameter("frame_id", 480, frame_id_descriptor);
+    this->declare_parameter("frame_id", "ip_camera", frame_id_descriptor);
   }
 
   void
