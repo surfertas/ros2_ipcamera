@@ -74,15 +74,14 @@ private:
 
   cv::VideoCapture cap_;
   std::string source_;
+  std::string frame_id_;
   int width_;
   int height_;
-  std::size_t frame_id_{0};
 
   std::string mat_type2encoding(int mat_type);
 
   void convert_frame_to_message(
     const cv::Mat & frame,
-    std::size_t frame_id,
     sensor_msgs::msg::Image & msg,
     sensor_msgs::msg::CameraInfo & camera_info_msg);
 };

@@ -17,12 +17,14 @@
 import os
 from pathlib import Path
 import shutil
+import sys
 import time
 import unittest
 
 from ament_index_python.packages import get_package_share_directory
 import launch
-from launch.actions import ExecuteProcess, TimerAction
+from launch.actions import ExecuteProcess, RegisterEventHandler
+from launch.event_handlers import OnProcessIO
 import launch_ros.actions
 import launch_testing.actions
 import pytest
@@ -49,41 +51,19 @@ def _required_executable(environment_variable, executable_name):
 
 @pytest.mark.launch_test
 def generate_test_description():
-    mediamtx = ExecuteProcess(
-        cmd=[
-            _required_executable('MEDIAMTX_EXECUTABLE', 'mediamtx'),
-            str(Path(__file__).with_name('mediamtx.yml')),
-        ],
-        output='screen',
-    )
-
     synthetic_stream = ExecuteProcess(
         cmd=[
+            sys.executable,
+            str(Path(__file__).with_name('synthetic_rtsp.py')),
+            '--mediamtx',
+            _required_executable('MEDIAMTX_EXECUTABLE', 'mediamtx'),
+            '--ffmpeg',
             _required_executable('FFMPEG_EXECUTABLE', 'ffmpeg'),
-            '-nostdin',
-            '-hide_banner',
-            '-loglevel',
-            'warning',
-            '-re',
-            '-f',
-            'lavfi',
-            '-i',
-            'testsrc=size=640x480:rate=10',
-            '-an',
-            '-c:v',
-            'libx264',
-            '-preset',
-            'ultrafast',
-            '-tune',
-            'zerolatency',
-            '-g',
-            '10',
-            '-pix_fmt',
-            'yuv420p',
-            '-f',
-            'rtsp',
-            '-rtsp_transport',
-            'tcp',
+            '--ffprobe',
+            _required_executable('FFPROBE_EXECUTABLE', 'ffprobe'),
+            '--config',
+            str(Path(__file__).with_name('mediamtx.yml')),
+            '--uri',
             RTSP_URI,
         ],
         output='screen',
@@ -103,6 +83,7 @@ def generate_test_description():
         },
         parameters=[{
             'rtsp_uri': RTSP_URI,
+            'frame_id': 'camera_optical_frame',
             'camera_calibration_file': calibration_file,
             'image_width': 640,
             'image_height': 480,
@@ -110,14 +91,20 @@ def generate_test_description():
         output='screen',
     )
 
+    camera_started = {'value': False}
+
+    def start_camera_when_stream_is_ready(event):
+        if b'RTSP_READY' not in event.text or camera_started['value']:
+            return None
+        camera_started['value'] = True
+        return [camera, launch_testing.actions.ReadyToTest()]
+
     return launch.LaunchDescription([
-        mediamtx,
-        TimerAction(period=1.0, actions=[synthetic_stream]),
-        TimerAction(period=2.0, actions=[camera]),
-        TimerAction(
-            period=3.0,
-            actions=[launch_testing.actions.ReadyToTest()],
-        ),
+        synthetic_stream,
+        RegisterEventHandler(OnProcessIO(
+            target_action=synthetic_stream,
+            on_stdout=start_camera_when_stream_is_ready,
+        )),
     ])
 
 
@@ -128,56 +115,82 @@ class TestRtspStream(unittest.TestCase):
         node = rclpy.create_node('rtsp_stream_test')
         images = {}
         camera_infos = {}
+        synchronized_stamps = []
+        synchronized_stamp_set = set()
 
         def stamp_key(message):
             return (message.header.stamp.sec, message.header.stamp.nanosec)
 
+        def record_synchronized_pair(stamp):
+            if (
+                stamp in images
+                and stamp in camera_infos
+                and stamp not in synchronized_stamp_set
+            ):
+                synchronized_stamps.append(stamp)
+                synchronized_stamp_set.add(stamp)
+
+        def record_image(message):
+            stamp = stamp_key(message)
+            images.setdefault(stamp, message)
+            record_synchronized_pair(stamp)
+
+        def record_camera_info(message):
+            stamp = stamp_key(message)
+            camera_infos.setdefault(stamp, message)
+            record_synchronized_pair(stamp)
+
         image_subscription = node.create_subscription(
             Image,
             IMAGE_TOPIC,
-            lambda message: images.setdefault(stamp_key(message), message),
+            record_image,
             qos_profile_sensor_data,
         )
         camera_info_subscription = node.create_subscription(
             CameraInfo,
             CAMERA_INFO_TOPIC,
-            lambda message: camera_infos.setdefault(
-                stamp_key(message), message
-            ),
+            record_camera_info,
             qos_profile_sensor_data,
         )
 
         try:
             deadline = time.monotonic() + 20.0
-            matching_stamps = []
             while time.monotonic() < deadline:
                 rclpy.spin_once(node, timeout_sec=0.1)
-                matching_stamps = sorted(images.keys() & camera_infos.keys())
-                if len(matching_stamps) >= 2:
+                if len(synchronized_stamps) >= 3:
                     break
 
             self.assertGreaterEqual(
-                len(matching_stamps),
-                2,
-                'expected at least two synchronized image/camera-info pairs',
+                len(synchronized_stamps),
+                3,
+                'expected at least three synchronized image/camera-info pairs',
             )
 
-            first_stamp, second_stamp = matching_stamps[:2]
-            image = images[first_stamp]
-            camera_info = camera_infos[first_stamp]
+            for stamp in synchronized_stamps[:3]:
+                image = images[stamp]
+                camera_info = camera_infos[stamp]
 
-            self.assertEqual((image.width, image.height), (640, 480))
-            self.assertEqual(image.encoding, 'bgr8')
-            self.assertEqual(len(image.data), image.step * image.height)
-            self.assertEqual(
-                (camera_info.width, camera_info.height), (640, 480)
-            )
-            self.assertEqual(image.header.stamp, camera_info.header.stamp)
-            self.assertEqual(
-                image.header.frame_id, camera_info.header.frame_id
-            )
-            self.assertTrue(image.header.frame_id)
-            self.assertGreater(second_stamp, first_stamp)
+                self.assertEqual((image.width, image.height), (640, 480))
+                self.assertEqual(image.encoding, 'bgr8')
+                self.assertEqual(len(image.data), image.step * image.height)
+                self.assertEqual(
+                    (camera_info.width, camera_info.height), (640, 480)
+                )
+                self.assertEqual(image.header.stamp, camera_info.header.stamp)
+                self.assertEqual(
+                    image.header.frame_id, camera_info.header.frame_id
+                )
+                self.assertEqual(
+                    image.header.frame_id, 'camera_optical_frame'
+                )
+
+            self.assertTrue(all(
+                later > earlier
+                for earlier, later in zip(
+                    synchronized_stamps,
+                    synchronized_stamps[1:],
+                )
+            ))
         finally:
             node.destroy_subscription(image_subscription)
             node.destroy_subscription(camera_info_subscription)

@@ -25,7 +25,7 @@ it:
 Usage
 -----
 
-Set ``rtsp_uri``, ``image_width``, and ``image_height`` in
+Set ``rtsp_uri``, ``frame_id``, ``image_width``, and ``image_height`` in
 ``config/ipcamera.yaml``. The configured dimensions must match a resolution
 provided by the camera; this node does not resize images. Replace
 ``config/camera_info.yaml`` with the calibration for the camera.
@@ -71,7 +71,7 @@ The integration test starts MediaMTX, publishes FFmpeg's deterministic test
 pattern over RTSP, launches the node, and verifies through its public ROS topics
 that:
 
-* at least two synchronized image and camera-info pairs arrive;
+* at least three synchronized image and camera-info pairs arrive;
 * images are 640 x 480 ``bgr8`` frames with a complete data buffer;
 * camera calibration dimensions match the images; and
 * timestamps advance.

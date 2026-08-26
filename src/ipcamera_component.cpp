@@ -52,7 +52,11 @@ void IpCamera::configure()
   const rclcpp::Logger node_logger = get_logger();
 
   get_parameter("rtsp_uri", source_);
-  RCLCPP_INFO(node_logger, "rtsp_uri: %s", source_.c_str());
+  RCLCPP_INFO(
+    node_logger, "RTSP URI is %s", source_.empty() ? "not configured" : "configured");
+
+  get_parameter("frame_id", frame_id_);
+  RCLCPP_INFO(node_logger, "frame_id: %s", frame_id_.c_str());
 
   get_parameter("camera_calibration_file", camera_calibration_file_param_);
   RCLCPP_INFO(
@@ -98,6 +102,12 @@ void IpCamera::initialize_parameters()
   rtsp_uri_descriptor.additional_constraints = "Should start with 'rtsp://'";
   declare_parameter("rtsp_uri", "", rtsp_uri_descriptor);
 
+  rcl_interfaces::msg::ParameterDescriptor frame_id_descriptor;
+  frame_id_descriptor.name = "frame_id";
+  frame_id_descriptor.type = rcl_interfaces::msg::ParameterType::PARAMETER_STRING;
+  frame_id_descriptor.description = "Coordinate frame associated with the camera image.";
+  declare_parameter("frame_id", "camera_optical_frame", frame_id_descriptor);
+
   rcl_interfaces::msg::ParameterDescriptor camera_calibration_file_descriptor;
   camera_calibration_file_descriptor.name = "camera_calibration_file";
   camera_calibration_file_descriptor.type =
@@ -131,9 +141,8 @@ void IpCamera::execute()
     std::make_unique<sensor_msgs::msg::CameraInfo>(cinfo_manager_->getCameraInfo());
   image_msg->is_bigendian = false;
 
-  convert_frame_to_message(frame, frame_id_, *image_msg, *camera_info_msg);
+  convert_frame_to_message(frame, *image_msg, *camera_info_msg);
   pub_.publish(std::move(image_msg), std::move(camera_info_msg));
-  ++frame_id_;
 }
 
 std::string IpCamera::mat_type2encoding(int mat_type)
@@ -154,7 +163,6 @@ std::string IpCamera::mat_type2encoding(int mat_type)
 
 void IpCamera::convert_frame_to_message(
   const cv::Mat & frame,
-  std::size_t frame_id,
   sensor_msgs::msg::Image & msg,
   sensor_msgs::msg::CameraInfo & camera_info_msg)
 {
@@ -167,11 +175,10 @@ void IpCamera::convert_frame_to_message(
   std::memcpy(msg.data.data(), frame.data, size);
 
   const rclcpp::Time timestamp = get_clock()->now();
-  const std::string frame_id_string = std::to_string(frame_id);
 
-  msg.header.frame_id = frame_id_string;
+  msg.header.frame_id = frame_id_;
   msg.header.stamp = timestamp;
-  camera_info_msg.header.frame_id = frame_id_string;
+  camera_info_msg.header.frame_id = frame_id_;
   camera_info_msg.header.stamp = timestamp;
 }
 }  // namespace ros2_ipcamera

@@ -83,7 +83,7 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 
-  add_launch_test(test/test_rtsp_stream.py TIMEOUT 45)
+  add_launch_test(test/test_rtsp_stream.py TIMEOUT 60)
 endif()
 
 # Install launch files.
@@ -96,6 +96,9 @@ install(DIRECTORY
   config
   DESTINATION share/${PROJECT_NAME}
 )
+
+install(FILES LICENSE
+  DESTINATION share/${PROJECT_NAME})
 
 ament_export_targets(export_ros2_ipcamera HAS_LIBRARY_TARGET)
 ament_export_dependencies(
