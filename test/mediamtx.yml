@@ -1,0 +1,22 @@
+# Copyright (c) 2026 Tasuku Miura
+# SPDX-License-Identifier: Apache-2.0
+
+logLevel: warn
+
+api: false
+metrics: false
+pprof: false
+playback: false
+
+rtsp: true
+rtspTransports: [tcp]
+rtspAddress: 127.0.0.1:8554
+
+rtmp: false
+hls: false
+webrtc: false
+srt: false
+moq: false
+
+paths:
+  test:

@@ -1,64 +1,102 @@
-ROS2 IP Camera Component
-====
+ROS 2 IP Camera Component
+=========================
 
-ROS2 component that publishes raw images taken from an IP camera.
+A ROS 2 component that reads an RTSP stream through OpenCV and publishes raw
+images together with camera calibration information.
 
-Note: to cross-compile for ARM architecture see the related article_.
+The current target is ROS 2 Lyrical Luth on Ubuntu 26.04.
 
-.. _article: http://surfertas.github.io/ros2/cross-compile/2019/10/14/crosscompile.html
+Installation
+------------
 
-Installation:
-----
+Clone this package into a ROS 2 workspace, install its dependencies, and build
+it:
 
 .. code:: bash
 
+  mkdir -p ~/ipcamera_ws/src
+  cd ~/ipcamera_ws/src
   git clone https://github.com/surfertas/ros2_ipcamera.git
+  cd ..
+  rosdep install --from-paths src --ignore-src --rosdistro lyrical -y
   colcon build --symlink-install
-  . install/setup.bash
+  source install/setup.bash
 
-Docker:
+Usage
+-----
 
-.. code:: bash
+Set ``rtsp_uri``, ``image_width``, and ``image_height`` in
+``config/ipcamera.yaml``. The configured dimensions must match a resolution
+provided by the camera; this node does not resize images. Replace
+``config/camera_info.yaml`` with the calibration for the camera.
 
-  git clone https://github.com/surfertas/ros2_ipcamera.git
-  cd ros2_ipcamera
-  sudo docker build -t ros2_ipcamera/latest .
-
-Usage:
-----
-
-1. Update ``rtsp_uri`` parameter found in ``/config/ipcamera.yaml`` with the appropriate rtsp uri to your IP camera.
-2. Set the width and height to match the resolution of the IP camera. The node does not resize the image, but only sets the capture.
-3. Generate a camera_info.yaml file and place in ``/config``.
+Then start either the standalone executable or the composable-node launch file:
 
 .. code:: bash
 
   ros2 run ros2_ipcamera composition
 
-  # Alternatively use the launch file
+  # Alternatively:
   ros2 launch ros2_ipcamera ipcamera.launch.py
 
-Docker:
+The node publishes:
+
+* ``/ipcamera/image_raw`` — raw image data
+* ``/ipcamera/camera_info`` — matching calibration and timestamps
+
+Docker
+------
+
+The default Docker target builds a ROS 2 Lyrical runtime image:
 
 .. code:: bash
 
-  # Update rtsp_uri in the yaml file.
-  sudo docker run -it ros2_ipcamera/latest bash
-  vi src/ros2_ipcamera/config/ipcamera.yaml
-  source ./install/setup.bash
-  ros2 launch ros2_ipcamera ipcamera.launch.py
+  docker build --tag ros2_ipcamera:lyrical .
 
-Topics:
+Pass camera parameters directly when starting the standalone node:
 
-``/ipcamera/image_raw`` - topic for raw image data
+.. code:: bash
 
-``/ipcamera/camera_info`` - topic for camera info
+  docker run --rm --network host ros2_ipcamera:lyrical \
+    ros2 run ros2_ipcamera composition --ros-args \
+      -p rtsp_uri:=rtsp://camera-host/stream \
+      -p image_width:=640 \
+      -p image_height:=480 \
+      -p camera_calibration_file:=file:///opt/ipcamera_ws/src/ros2_ipcamera/config/camera_info.yaml
 
-References:
-----
-1. https://github.com/ros2/demos/blob/master/image_tools/src/cam2image.cpp
-2. http://surfertas.github.io/ros2/2019/08/17/ros2-qos.html
-3. https://github.com/klintan/ros2_usb_camera/blob/master/src/usb_camera_driver.cpp
-4. https://github.com/ros-perception/image_common/wiki/ROS2-Migration
-5. https://github.com/ros2/demos/tree/master/composition
-6. https://github.com/christianrauch/raspicam2_node/blob/master/src/RasPiCamPublisherNode.cpp
+Testing without a camera
+------------------------
+
+The integration test starts MediaMTX, publishes FFmpeg's deterministic test
+pattern over RTSP, launches the node, and verifies through its public ROS topics
+that:
+
+* at least two synchronized image and camera-info pairs arrive;
+* images are 640 x 480 ``bgr8`` frames with a complete data buffer;
+* camera calibration dimensions match the images; and
+* timestamps advance.
+
+Run the complete build and test in Docker:
+
+.. code:: bash
+
+  docker build --target test --tag ros2_ipcamera:test .
+
+To run it in an existing ROS 2 Lyrical workspace, install ``ffmpeg`` and put the
+``mediamtx`` executable on ``PATH``, then run:
+
+.. code:: bash
+
+  colcon build --symlink-install
+  source install/setup.bash
+  colcon test --packages-select ros2_ipcamera --event-handlers console_direct+
+  colcon test-result --verbose
+
+GitHub Actions runs the same Docker test target on every push and pull request.
+
+References
+----------
+
+1. https://docs.ros.org/en/lyrical/
+2. https://github.com/bluenviron/mediamtx
+3. https://github.com/ros-perception/image_common
