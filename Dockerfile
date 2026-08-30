@@ -1,4 +1,4 @@
-# Copyright (c) 2026 Tasuku Miura
+# Copyright (c) 2026 Tasuku
 # SPDX-License-Identifier: Apache-2.0
 
 FROM ros:lyrical-ros-base AS build
