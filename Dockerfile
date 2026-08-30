@@ -26,7 +26,7 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.bash" \
       --from-paths src \
       --ignore-src \
       --rosdistro "${ROS_DISTRO}" \
-      --yes
+      -y
 
 ARG CMAKE_BUILD_TYPE=Release
 RUN . "/opt/ros/${ROS_DISTRO}/setup.bash" \
