@@ -4,17 +4,19 @@
   <name>ros2_ipcamera</name>
   <version>0.0.1</version>
   <description>ROS2 component for use with IP cameras</description>
-  <author>Tasuku</author>
   <maintainer email="9401344+surfertas@users.noreply.github.com">tasuku</maintainer>
-  <license>MIT</license>
+  <license>Apache-2.0</license>
 
   <url type="repository">https://github.com/surfertas/ros2_ipcamera</url>
+  <author>Tasuku</author>
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>camera_info_manager</depend>
   <depend>libopencv-dev</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
   <depend>rclcpp_lifecycle</depend>
+  <depend>rcl_interfaces</depend>
   <depend>rcutils</depend>
   <depend>rmw</depend>
   <depend>rmw_implementation_cmake</depend>
@@ -24,8 +26,16 @@
   <depend>launch_ros</depend>
   <depend>camera_calibration_parsers</depend>
 
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+  <test_depend>ffmpeg</test_depend>
+  <test_depend>launch_testing</test_depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>rclpy</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
