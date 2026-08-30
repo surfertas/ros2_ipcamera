@@ -29,6 +29,7 @@ import launch_testing.actions
 import launch_testing.event_handlers
 import pytest
 import rclpy
+from rclpy.executors import SingleThreadedExecutor
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import CameraInfo, Image
 
@@ -108,6 +109,8 @@ class TestRtspStream(unittest.TestCase):
     def test_publishes_synchronized_frames(self):
         rclpy.init()
         node = rclpy.create_node('rtsp_stream_test')
+        executor = SingleThreadedExecutor()
+        executor.add_node(node)
         images = {}
         camera_infos = {}
         synchronized_stamps = []
@@ -151,7 +154,7 @@ class TestRtspStream(unittest.TestCase):
         try:
             deadline = time.monotonic() + 20.0
             while time.monotonic() < deadline:
-                rclpy.spin_once(node, timeout_sec=0.1)
+                executor.spin_once(timeout_sec=0.1)
                 if len(synchronized_stamps) >= 3:
                     break
 
@@ -187,6 +190,8 @@ class TestRtspStream(unittest.TestCase):
                 )
             ))
         finally:
+            executor.remove_node(node)
+            executor.shutdown()
             node.destroy_subscription(image_subscription)
             node.destroy_subscription(camera_info_subscription)
             node.destroy_node()
