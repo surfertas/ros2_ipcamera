@@ -35,6 +35,7 @@ ament_target_dependencies(ipcamera_component
   "rclcpp"
   "rclcpp_components"
   "cv_bridge"
+  "OpenCV"
   "sensor_msgs"
   "camera_info_manager"
   "camera_calibration_parsers"
