@@ -36,27 +36,26 @@ target_include_directories(ipcamera_component
     "$<INSTALL_INTERFACE:include>"
     ${OpenCV_INCLUDE_DIRS})
 
-ament_target_dependencies(ipcamera_component
-  "rclcpp"
-  "rclcpp_components"
-  "rcl_interfaces"
-  "rmw"
-  "cv_bridge"
-  "sensor_msgs"
-  "camera_info_manager"
-  "camera_calibration_parsers"
-  "image_transport")
 target_link_libraries(ipcamera_component
-  ${OpenCV_LIBS})
+  PUBLIC
+    rclcpp::rclcpp
+    ${rcl_interfaces_TARGETS}
+    sensor_msgs::sensor_msgs
+    camera_info_manager::camera_info_manager
+    image_transport::image_transport
+    ${OpenCV_LIBS}
+  PRIVATE
+    rclcpp_components::component
+    rmw::rmw)
 
 rclcpp_components_register_nodes(ipcamera_component "ros2_ipcamera::IpCamera")
 
 add_executable(composition
   src/composition.cpp)
 target_link_libraries(composition
-  ipcamera_component)
-ament_target_dependencies(composition
-  "rclcpp")
+  PRIVATE
+    ipcamera_component
+    rclcpp::rclcpp)
 
 install(TARGETS
   ipcamera_component
