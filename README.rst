@@ -72,9 +72,13 @@ pattern over RTSP, launches the node, and verifies through its public ROS topics
 that:
 
 * at least three synchronized image and camera-info pairs arrive;
-* images are 640 x 480 ``bgr8`` frames with a complete data buffer;
+* images are 160 x 120 ``bgr8`` frames with a complete data buffer;
 * camera calibration dimensions match the images; and
 * timestamps advance.
+
+The compact test resolution keeps best-effort raw image delivery deterministic
+on both native Linux and Docker Desktop. It does not change the package's
+default 640 x 480 runtime configuration.
 
 Run the complete build and test in Docker:
 

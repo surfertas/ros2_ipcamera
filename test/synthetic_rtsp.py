@@ -31,6 +31,9 @@ def parse_arguments():
     parser.add_argument('--ffprobe', required=True)
     parser.add_argument('--config', required=True)
     parser.add_argument('--uri', required=True)
+    parser.add_argument('--width', required=True, type=int)
+    parser.add_argument('--height', required=True, type=int)
+    parser.add_argument('--rate', default=10, type=int)
     return parser.parse_args()
 
 
@@ -49,7 +52,7 @@ def wait_for_port(process, host, port, timeout):
     raise TimeoutError('MediaMTX RTSP port did not become ready')
 
 
-def wait_for_stream(process, ffprobe, uri, timeout):
+def wait_for_stream(process, ffprobe, uri, expected_size, timeout):
     command = [
         ffprobe,
         '-v',
@@ -80,7 +83,7 @@ def wait_for_stream(process, ffprobe, uri, timeout):
             )
         except subprocess.TimeoutExpired:
             continue
-        if result.returncode == 0 and result.stdout.strip() == '640x480':
+        if result.returncode == 0 and result.stdout.strip() == expected_size:
             return
         time.sleep(0.1)
     raise TimeoutError('synthetic RTSP stream did not become ready')
@@ -136,7 +139,8 @@ def main():
             '-f',
             'lavfi',
             '-i',
-            'testsrc=size=640x480:rate=10',
+            f'testsrc=size={arguments.width}x{arguments.height}:'
+            f'rate={arguments.rate}',
             '-an',
             '-c:v',
             'libx264',
@@ -145,7 +149,7 @@ def main():
             '-tune',
             'zerolatency',
             '-g',
-            '10',
+            str(arguments.rate),
             '-pix_fmt',
             'yuv420p',
             '-f',
@@ -154,7 +158,13 @@ def main():
             'tcp',
             arguments.uri,
         ], start_new_session=True)
-        wait_for_stream(ffmpeg, arguments.ffprobe, arguments.uri, timeout=20.0)
+        wait_for_stream(
+            ffmpeg,
+            arguments.ffprobe,
+            arguments.uri,
+            expected_size=f'{arguments.width}x{arguments.height}',
+            timeout=20.0,
+        )
         print('RTSP_READY', flush=True)
 
         while not stop_requested:

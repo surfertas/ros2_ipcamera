@@ -21,7 +21,6 @@ import sys
 import time
 import unittest
 
-from ament_index_python.packages import get_package_share_directory
 import launch
 from launch.actions import ExecuteProcess, RegisterEventHandler
 import launch_ros.actions
@@ -37,6 +36,8 @@ from sensor_msgs.msg import CameraInfo, Image
 RTSP_URI = 'rtsp://127.0.0.1:8554/test'
 IMAGE_TOPIC = '/ipcamera/image_raw'
 CAMERA_INFO_TOPIC = '/ipcamera/camera_info'
+IMAGE_WIDTH = 160
+IMAGE_HEIGHT = 120
 
 
 def _required_executable(environment_variable, executable_name):
@@ -66,15 +67,15 @@ def generate_test_description():
             str(Path(__file__).with_name('mediamtx.yml')),
             '--uri',
             RTSP_URI,
+            '--width',
+            str(IMAGE_WIDTH),
+            '--height',
+            str(IMAGE_HEIGHT),
         ],
         output='screen',
     )
 
-    calibration_file = Path(
-        get_package_share_directory('ros2_ipcamera'),
-        'config',
-        'camera_info.yaml',
-    ).as_uri()
+    calibration_file = Path(__file__).with_name('camera_info.yaml').as_uri()
     camera = launch_ros.actions.Node(
         package='ros2_ipcamera',
         executable='composition',
@@ -86,8 +87,8 @@ def generate_test_description():
             'rtsp_uri': RTSP_URI,
             'frame_id': 'camera_optical_frame',
             'camera_calibration_file': calibration_file,
-            'image_width': 640,
-            'image_height': 480,
+            'image_width': IMAGE_WIDTH,
+            'image_height': IMAGE_HEIGHT,
         }],
         output='screen',
     )
@@ -168,11 +169,15 @@ class TestRtspStream(unittest.TestCase):
                 image = images[stamp]
                 camera_info = camera_infos[stamp]
 
-                self.assertEqual((image.width, image.height), (640, 480))
+                self.assertEqual(
+                    (image.width, image.height),
+                    (IMAGE_WIDTH, IMAGE_HEIGHT),
+                )
                 self.assertEqual(image.encoding, 'bgr8')
                 self.assertEqual(len(image.data), image.step * image.height)
                 self.assertEqual(
-                    (camera_info.width, camera_info.height), (640, 480)
+                    (camera_info.width, camera_info.height),
+                    (IMAGE_WIDTH, IMAGE_HEIGHT),
                 )
                 self.assertEqual(image.header.stamp, camera_info.header.stamp)
                 self.assertEqual(

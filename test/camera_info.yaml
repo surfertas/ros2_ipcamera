@@ -1,0 +1,23 @@
+# Copyright (c) 2026 Tasuku
+# SPDX-License-Identifier: Apache-2.0
+
+image_width: 160
+image_height: 120
+camera_name: "camera"
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [160.375, 0, 80.0, 0, 160.375, 60.0, 0, 0, 1]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0, 0, 0, 0, 0]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [160.375, 0, 80.0, 0, 0, 160.375, 60.0, 0, 0, 0, 1, 0]
