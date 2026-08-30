@@ -4,6 +4,7 @@
 name: ROS 2 Lyrical CI
 
 on:
+  push:
   pull_request:
 
 permissions:
