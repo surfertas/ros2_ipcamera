@@ -22,11 +22,13 @@ COPY . src/ros2_ipcamera
 
 RUN . "/opt/ros/${ROS_DISTRO}/setup.bash" \
     && rosdep update \
+    && apt-get update \
     && rosdep install \
       --from-paths src \
       --ignore-src \
       --rosdistro "${ROS_DISTRO}" \
-      -y
+      -y \
+    && rm -rf /var/lib/apt/lists/*
 
 ARG CMAKE_BUILD_TYPE=Release
 RUN . "/opt/ros/${ROS_DISTRO}/setup.bash" \
