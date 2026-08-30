@@ -4,11 +4,11 @@
   <name>ros2_ipcamera</name>
   <version>0.0.1</version>
   <description>ROS2 component for use with IP cameras</description>
-  <author>Tasuku</author>
   <maintainer email="9401344+surfertas@users.noreply.github.com">tasuku</maintainer>
   <license>Apache-2.0</license>
 
   <url type="repository">https://github.com/surfertas/ros2_ipcamera</url>
+  <author>Tasuku</author>
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>camera_info_manager</depend>

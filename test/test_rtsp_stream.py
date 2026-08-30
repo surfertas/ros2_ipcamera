@@ -24,9 +24,9 @@ import unittest
 from ament_index_python.packages import get_package_share_directory
 import launch
 from launch.actions import ExecuteProcess, RegisterEventHandler
-from launch.event_handlers import OnProcessIO
 import launch_ros.actions
 import launch_testing.actions
+import launch_testing.event_handlers
 import pytest
 import rclpy
 from rclpy.qos import qos_profile_sensor_data
@@ -91,20 +91,15 @@ def generate_test_description():
         output='screen',
     )
 
-    camera_started = {'value': False}
-
-    def start_camera_when_stream_is_ready(event):
-        if b'RTSP_READY' not in event.text or camera_started['value']:
-            return None
-        camera_started['value'] = True
-        return [camera, launch_testing.actions.ReadyToTest()]
-
     return launch.LaunchDescription([
         synthetic_stream,
-        RegisterEventHandler(OnProcessIO(
-            target_action=synthetic_stream,
-            on_stdout=start_camera_when_stream_is_ready,
-        )),
+        RegisterEventHandler(
+            launch_testing.event_handlers.StdoutReadyListener(
+                target_action=synthetic_stream,
+                ready_txt='RTSP_READY',
+                actions=[camera, launch_testing.actions.ReadyToTest()],
+            )
+        ),
     ])
 
 
